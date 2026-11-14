@@ -1,0 +1,12 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: raw
+    tables:
+      - name: aircraft
+      - name: parts
+      - name: airworthiness_directives
+      - name: flight_logs
+      - name: component_events
+      - name: work_orders

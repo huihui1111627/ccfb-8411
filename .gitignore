@@ -16,3 +16,15 @@ node_modules/
 __pycache__/
 .venv/
 venv/
+
+# 数据仓库产物（landing 文件、DuckDB 库、dbt 编译产物）
+/data/
+/dbt/target/
+/dbt/dbt_packages/
+/dbt/logs/
+/dbt/.user.yml
+/logs/
+*.duckdb
+*.duckdb.wal
+.pytest_cache/
+*.egg-info/

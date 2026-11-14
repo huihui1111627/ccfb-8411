@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}部件履历 · MRO{% endblock %}
+{% block body %}
+<div class="card">
+  <h1>部件履历查询</h1>
+  <form method="get" style="display:flex;gap:10px;align-items:center">
+    <label for="sn">序号件 serial_number：</label>
+    <select id="sn" name="sn" onchange="this.form.submit()">
+      {% for s in serials %}
+      <option value="{{ s.serial_number }}" {{ 'selected' if s.serial_number == current else '' }}>
+        {{ s.serial_number }}（{{ s.part_name }}）
+      </option>
+      {% endfor %}
+    </select>
+  </form>
+</div>
+
+{% if data and data.part %}
+<div class="card">
+  <h2>{{ current }} 累计概况</h2>
+  <div class="grid">
+    <div class="kpi"><div class="v">{{ data.part.total_flight_hours }}</div><div class="k">累计飞行小时</div></div>
+    <div class="kpi"><div class="v">{{ data.part.total_cycles }}</div><div class="k">累计循环</div></div>
+    <div class="kpi"><div class="v">{{ data.part.installation_count }}</div><div class="k">装机次数</div></div>
+    <div class="kpi"><div class="v" style="font-size:15px;padding-top:6px">
+      {% if data.part.is_life_limited %}时寿件 {{ data.part.life_limit_hours }}h / {{ data.part.life_limit_cycles }}cy
+      {% else %}非时寿件{% endif %}</div><div class="k">寿命属性</div></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>装机位置历史（SCD2，按时间段）</h2>
+  <div class="scroll"><table>
+    <tr><th>飞机 MSN</th><th>机号</th><th>位置</th><th>生效起</th><th>生效止</th><th>当前</th></tr>
+    {% for p in data.positions %}
+    <tr><td>{{ p.aircraft_msn }}</td><td>{{ p.tail_number or '—' }}</td>
+        <td><code>{{ p.position_code }}</code></td><td>{{ p.valid_from }}</td>
+        <td>{{ '9999-12-31（至今）' if p.is_current else p.valid_to }}</td>
+        <td>{% if p.is_current %}<span class="badge b-blue">current</span>{% else %}—{% endif %}</td></tr>
+    {% endfor %}
+  </table></div>
+</div>
+
+<div class="card">
+  <h2>装机区间明细（累计小时 = 逐段相加，勾稽由测试保证）</h2>
+  <div class="scroll"><table>
+    <tr><th>区间</th><th>飞机/机号</th><th>位置</th><th>装机日</th><th>拆下日</th>
+        <th>区间小时</th><th>区间循环</th><th>装机时累计h</th><th>区间末累计h</th>
+        <th>装机工卡</th><th>拆件工卡</th><th>拆下原因</th></tr>
+    {% for r in data.intervals %}
+    <tr>
+      <td>{{ r.installation_id }}<br><span class="muted">第{{ r.install_seq }}次</span></td>
+      <td>{{ r.aircraft_msn }} / {{ r.tail_number }}</td>
+      <td><code>{{ r.position_code }}</code></td>
+      <td>{{ r.install_date }}</td>
+      <td>{{ '在役' if r.is_open else r.removal_date }}</td>
+      <td><b>{{ r.interval_flight_hours }}</b></td>
+      <td><b>{{ r.interval_cycles }}</b></td>
+      <td>{{ r.cumulative_hours_at_install }}</td>
+      <td><b>{{ r.cumulative_hours_at_end }}</b></td>
+      <td>{{ r.install_work_order_id }}</td>
+      <td>{{ r.removal_work_order_id or '—' }}</td>
+      <td>{{ r.removal_reason or '—' }}</td>
+    </tr>
+    {% endfor %}
+  </table></div>
+  <p class="muted" style="margin-top:10px">
+    校验：Σ区间小时 = {{ data.intervals | sum(attribute='interval_flight_hours') }}，
+    末区间累计 = {{ data.intervals[-1].cumulative_hours_at_end }}</p>
+</div>
+{% endif %}
+{% endblock %}

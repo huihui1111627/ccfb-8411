@@ -1,0 +1,108 @@
+version: 2
+
+models:
+  - name: stg_aircraft
+    description: "飞机主数据（staging 层，类型规范化）"
+    columns:
+      - name: aircraft_msn
+        description: "飞机制造序号"
+        tests: [not_null, unique]
+      - name: tail_number
+        tests: [not_null]
+      - name: aircraft_type
+        tests: [not_null, accepted_values:
+                  {values: ["B737-800", "A320-200", "A350-900"]}]
+      - name: in_service_date
+        tests: [not_null]
+
+  - name: stg_parts
+    description: "部件主数据"
+    columns:
+      - name: part_number
+        tests: [not_null, unique]
+      - name: part_name
+        tests: [not_null]
+      - name: is_life_limited
+        tests: [not_null]
+      - name: life_limit_hours
+        tests:
+          - expression_is_true:
+              expression: "life_limit_hours > 0"
+              config:
+                severity: error
+                where: "is_life_limited"
+
+  - name: stg_airworthiness_directives
+    description: "适航指令主数据"
+    columns:
+      - name: ad_id
+        tests: [not_null, unique]
+      - name: aircraft_type
+        tests: [not_null]
+      - name: applicable_msn_min
+        tests: [not_null]
+      - name: applicable_msn_max
+        tests: [not_null]
+
+  - name: stg_flight_logs
+    description: "飞行日志（每段航班一行）"
+    columns:
+      - name: flight_log_id
+        tests: [not_null, unique]
+      - name: aircraft_msn
+        tests: [not_null, relationships:
+                  {to: ref('stg_aircraft'), field: aircraft_msn}]
+      - name: flight_date
+        tests: [not_null]
+      - name: flight_hours
+        tests:
+          - not_null
+          - expression_is_true:
+              expression: "flight_hours > 0"
+      - name: flight_cycles
+        tests:
+          - not_null
+          - accepted_values: {values: [1]}
+
+  - name: stg_component_events
+    description: "部件拆装事件"
+    columns:
+      - name: event_id
+        tests: [not_null, unique]
+      - name: serial_number
+        tests: [not_null]
+      - name: part_number
+        tests: [not_null, relationships:
+                  {to: ref('stg_parts'), field: part_number}]
+      - name: aircraft_msn
+        tests: [not_null, relationships:
+                  {to: ref('stg_aircraft'), field: aircraft_msn}]
+      - name: event_type
+        tests: [not_null, accepted_values: {values: ["INSTALL", "REMOVE"]}]
+      - name: event_date
+        tests: [not_null]
+      - name: related_work_order_id
+        tests: [not_null]
+
+  - name: stg_work_orders
+    description: "维修工卡"
+    columns:
+      - name: work_order_id
+        tests: [not_null, unique]
+      - name: aircraft_msn
+        tests: [not_null, relationships:
+                  {to: ref('stg_aircraft'), field: aircraft_msn}]
+      - name: work_order_type
+        tests: [not_null, accepted_values:
+                  {values: ["R&I", "AD", "INSPECT"]}]
+      - name: status
+        tests: [not_null, accepted_values: {values: ["OPEN", "CLOSED"]}]
+      - name: opened_date
+        tests: [not_null]
+      - name: ad_id
+        tests:
+          - relationships:
+              to: ref('stg_airworthiness_directives')
+              field: ad_id
+              config:
+                where: "ad_id is not null"

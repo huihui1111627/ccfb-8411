@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}可靠性指标 · MRO{% endblock %}
+{% block body %}
+<div class="card">
+  <h1>机队可靠性指标（月度）</h1>
+  <p class="muted">技术放行率 = 1 − 非例行工卡/航班段；拆件率 = 拆下事件/航班段 ×100；比率均按机队总量重算。</p>
+  <h2>机队月汇总</h2>
+  <div class="scroll"><table>
+    <tr><th>月份</th><th>在役机数</th><th>机队小时</th><th>航班段</th><th>总工卡</th>
+        <th>例行/非例行</th><th>拆下次数</th><th>技术放行率</th><th>百段拆件率</th><th>例行工卡占比</th></tr>
+    {% for r in data.fleet %}
+    <tr>
+      <td>{{ r.month_start | string }}</td>
+      <td>{{ r.active_aircraft }}</td><td>{{ r.fleet_flight_hours }}</td>
+      <td>{{ r.fleet_flights }}</td><td>{{ r.total_wo }}</td>
+      <td>{{ r.routine_wo }} / {{ r.non_routine_wo }}</td>
+      <td>{{ r.removal_events }}</td>
+      <td class="{{ 'warn' if r.fleet_dispatch_rate_pct and r.fleet_dispatch_rate_pct < 98 else '' }}">
+        {{ r.fleet_dispatch_rate_pct if r.fleet_dispatch_rate_pct is not none else '—' }}%</td>
+      <td>{{ r.fleet_removal_rate_per_100_flights if r.fleet_removal_rate_per_100_flights is not none else '—' }}</td>
+      <td>{{ r.fleet_routine_wo_share_pct if r.fleet_routine_wo_share_pct is not none else '—' }}%</td>
+    </tr>
+    {% endfor %}
+  </table></div>
+</div>
+
+<div class="card">
+  <h2>最近月份各机明细</h2>
+  <div class="scroll"><table>
+    <tr><th>飞机</th><th>机型</th><th>飞行小时</th><th>航班段</th><th>非例行工卡</th>
+        <th>拆下</th><th>技术放行率</th><th>百段拆件率</th><th>例行占比</th><th>循环/小时</th></tr>
+    {% for r in data.latest %}
+    <tr>
+      <td>{{ r.tail_number }}（{{ r.aircraft_msn }}）</td><td>{{ r.aircraft_type }}</td>
+      <td>{{ r.flight_hours }}</td><td>{{ r.flights }}</td>
+      <td>{{ r.non_routine_wo }}</td><td>{{ r.removal_events }}</td>
+      <td>{{ r.technical_dispatch_rate_pct if r.technical_dispatch_rate_pct is not none else '—' }}%</td>
+      <td>{{ r.removal_rate_per_100_flights if r.removal_rate_per_100_flights is not none else '—' }}</td>
+      <td>{{ r.routine_wo_share_pct if r.routine_wo_share_pct is not none else '—' }}%</td>
+      <td>{{ r.cycles_per_hour if r.cycles_per_hour is not none else '—' }}</td>
+    </tr>
+    {% endfor %}
+  </table></div>
+</div>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}适航指令 · MRO{% endblock %}
+{% block body %}
+<div class="card">
+  <h1>适航指令适用性与符合性</h1>
+  <p class="muted">适用判定：机型一致且飞机 MSN 落在指令序号区间 [min, max]；完成判定：存在 CLOSED 的 AD 类工卡。</p>
+  <div class="grid" style="margin-bottom:14px">
+    {% for s in data.summary %}
+    <div class="kpi"><div class="v">{{ s.n }}</div><div class="k">{{ s.compliance_status }}</div></div>
+    {% endfor %}
+  </div>
+  <div class="scroll"><table>
+    <tr><th>AD 编号</th><th>标题</th><th>机型</th><th>飞机</th><th>序号范围</th>
+        <th>时限(h)</th><th>到期日</th><th>机队累计h</th><th>剩余时限h</th><th>状态</th><th>完成日</th></tr>
+    {% for r in data.rows %}
+    <tr>
+      <td><code>{{ r.ad_id }}</code></td><td>{{ r.ad_title }}</td>
+      <td>{{ r.aircraft_type }}</td><td>{{ r.aircraft_msn }} / {{ r.tail_number }}</td>
+      <td>{{ r.applicable_msn_min }}–{{ r.applicable_msn_max }}</td>
+      <td>{{ r.due_hours if r.due_hours is not none else '—' }}</td>
+      <td>{{ r.due_date or '—' }}</td>
+      <td>{{ r.aircraft_total_hours }}</td>
+      <td>{{ r.remaining_due_hours if r.remaining_due_hours is not none else '—' }}</td>
+      <td>
+        {% if r.compliance_status == 'COMPLIANT' %}<span class="badge b-green">已完成</span>
+        {% elif r.compliance_status == 'OPEN' %}<span class="badge b-blue">OPEN</span>
+        {% elif r.compliance_status == 'DUE_SOON' %}<span class="badge b-amber">临近</span>
+        {% else %}<span class="badge b-red">{{ r.compliance_status }}</span>{% endif %}
+      </td>
+      <td>{{ r.completed_date or '—' }}</td>
+    </tr>
+    {% endfor %}
+  </table></div>
+  {% if data.not_applicable %}
+  <h2 style="margin-top:18px">不适用本队机队的指令</h2>
+  <div class="scroll"><table>
+    <tr><th>AD 编号</th><th>标题</th><th>适用机型</th></tr>
+    {% for a in data.not_applicable %}
+    <tr><td><code>{{ a.ad_id }}</code></td><td>{{ a.ad_title }}</td><td>{{ a.aircraft_type }}</td></tr>
+    {% endfor %}
+  </table></div>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>时寿件剩余寿命预警</h2>
+  <p class="muted">剩余比例 ≤20% 预警，≤0 到期。小时与循环两个维度取更严重者。</p>
+  <div class="scroll"><table>
+    <tr><th>序号件</th><th>名称</th><th>所在飞机</th><th>寿命上限 h/cy</th>
+        <th>已用 h（%）</th><th>剩余 h</th><th>已用 cy（%）</th><th>剩余 cy</th><th>状态</th></tr>
+    {% for p in llp %}
+    <tr>
+      <td><b>{{ p.serial_number }}</b></td><td>{{ p.part_name }}</td>
+      <td>{{ p.tail_number or '备件/不在役' }}</td>
+      <td>{{ p.life_limit_hours }} / {{ p.life_limit_cycles }}</td>
+      <td>{{ p.used_hours }}（{{ p.hours_used_pct }}%）
+        <div class="bar"><i style="width:{{ [p.hours_used_pct, 100] | min }}%"></i></div></td>
+      <td class="{{ 'bad' if p.remaining_hours <= 0 else ('warn' if p.remaining_hours <= 0.2 * p.life_limit_hours else '') }}">
+        {{ p.remaining_hours }}</td>
+      <td>{{ p.used_cycles }}（{{ p.cycles_used_pct }}%）</td>
+      <td>{{ p.remaining_cycles }}</td>
+      <td>
+        {% if p.life_status == 'HEALTHY' %}<span class="badge b-green">HEALTHY</span>
+        {% elif p.life_status == 'WARNING' %}<span class="badge b-amber">WARNING</span>
+        {% else %}<span class="badge b-red">EXPIRED</span>{% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table></div>
+</div>
+{% endblock %}

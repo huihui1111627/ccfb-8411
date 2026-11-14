@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}MRO 维修数据仓库{% endblock %}</title>
+  <style>
+    :root { --bg:#f1f5f9; --card:#fff; --line:#e2e8f0; --ink:#0f172a;
+            --muted:#64748b; --brand:#0369a1; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+           background:var(--bg); color:var(--ink); font-size:14px; }
+    header { background:#0f172a; color:#fff; padding:0 24px; display:flex;
+             align-items:center; gap:8px; height:56px; }
+    header .brand { font-weight:700; font-size:16px; margin-right:24px; }
+    header a { color:#cbd5e1; text-decoration:none; padding:8px 14px; border-radius:6px; }
+    header a:hover { background:#1e293b; color:#fff; }
+    header a.active { background:var(--brand); color:#fff; }
+    main { max-width:1280px; margin:24px auto; padding:0 20px; }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:10px;
+            padding:18px 20px; margin-bottom:20px; }
+    h1 { font-size:20px; margin:0 0 14px; }
+    h2 { font-size:15px; margin:0 0 12px; color:#1e293b; }
+    table { border-collapse:collapse; width:100%; font-size:13px; }
+    th, td { text-align:left; padding:7px 10px; border-bottom:1px solid var(--line);
+             white-space:nowrap; }
+    th { background:#f8fafc; color:#334155; font-weight:600; position:sticky; top:0; }
+    tr:hover td { background:#f8fafc; }
+    .scroll { overflow-x:auto; }
+    .grid { display:grid; gap:14px; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); }
+    .kpi { background:#f8fafc; border:1px solid var(--line); border-radius:8px; padding:14px; }
+    .kpi .v { font-size:22px; font-weight:700; color:var(--brand); }
+    .kpi .k { color:var(--muted); margin-top:4px; }
+    .badge { display:inline-block; padding:2px 9px; border-radius:999px; font-size:12px;
+             font-weight:600; }
+    .b-green { background:#dcfce7; color:#15803d; }
+    .b-red { background:#fee2e2; color:#b91c1c; }
+    .b-amber { background:#fef3c7; color:#b45309; }
+    .b-gray { background:#e5e7eb; color:#4b5563; }
+    .b-blue { background:#dbeafe; color:#1d4ed8; }
+    .muted { color:var(--muted); }
+    .alert { background:#fffbeb; border:1px solid #fde68a; color:#92400e;
+             padding:14px 16px; border-radius:8px; }
+    code { background:#f1f5f9; padding:1px 5px; border-radius:4px; }
+    select { padding:7px 10px; border:1px solid var(--line); border-radius:6px;
+             font-size:14px; min-width:220px; }
+    .bar { height:10px; border-radius:5px; background:#e2e8f0; overflow:hidden; min-width:90px; }
+    .bar > i { display:block; height:100%; background:var(--brand); }
+    .ok { color:#15803d; font-weight:600; } .bad { color:#b91c1c; font-weight:600; }
+    .warn { color:#b45309; font-weight:600; }
+  </style>
+</head>
+<body>
+<header>
+  <span class="brand">✈ MRO 维修数据仓库</span>
+  {% set nav = [
+    ('home', '总览', '/'),
+    ('sources', '数据源', '/sources'),
+    ('lineage', '模型血缘', '/lineage'),
+    ('components', '部件履历', '/components'),
+    ('airworthiness', '适航指令', '/airworthiness'),
+    ('metrics', '指标', '/metrics')] %}
+  {% for key, label, href in nav %}
+    <a href="{{ href }}" class="{{ 'active' if active == key else '' }}">{{ label }}</a>
+  {% endfor %}
+</header>
+<main>
+{% block body %}{% endblock %}
+</main>
+</body>
+</html>

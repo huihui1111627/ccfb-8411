@@ -1,0 +1,9 @@
+# dbt-duckdb profile；路径由环境变量 MRO_DW_DUCKDB_PATH 注入，测试时指向临时库。
+mro_dw:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ env_var('MRO_DW_DUCKDB_PATH') }}"
+      schema: main
+      threads: 4

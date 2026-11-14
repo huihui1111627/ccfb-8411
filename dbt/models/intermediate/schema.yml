@@ -1,0 +1,71 @@
+version: 2
+
+models:
+  - name: int_installation_periods
+    description: "装机区间（拆装事件流折叠结果，含跨机与同架拆回）"
+    columns:
+      - name: installation_id
+        tests: [not_null, unique]
+      - name: serial_number
+        tests: [not_null]
+      - name: aircraft_msn
+        tests: [not_null]
+      - name: install_date
+        tests: [not_null]
+      - name: interval_end_date
+        tests: [not_null]
+
+  - name: int_flight_daily
+    description: "机/日粒度飞行聚合"
+    columns:
+      - name: aircraft_msn
+        tests: [not_null]
+      - name: flight_date
+        tests: [not_null]
+      - name: daily_flight_hours
+        tests:
+          - not_null
+          - expression_is_true:
+              expression: "daily_flight_hours > 0"
+
+  - name: int_installation_usage
+    description: "按装机区间归集的小时与循环"
+    columns:
+      - name: installation_id
+        tests:
+          - not_null
+          - unique
+          - relationships:
+              to: ref('int_installation_periods')
+              field: installation_id
+      - name: interval_flight_hours
+        tests:
+          - not_null
+          - expression_is_true:
+              expression: "interval_flight_hours >= 0"
+
+  - name: int_part_cumulative_usage
+    description: "部件逐区间累计使用量（窗口函数）"
+    columns:
+      - name: installation_id
+        tests: [not_null, unique]
+      - name: serial_number
+        tests: [not_null]
+      - name: cumulative_hours_at_end
+        tests:
+          - not_null
+          - expression_is_true:
+              expression: "cumulative_hours_at_end >= 0"
+
+  - name: int_ad_applicability
+    description: "适航指令按机型/序号范围的适用性与完成状态"
+    columns:
+      - name: ad_id
+        tests: [not_null]
+      - name: aircraft_msn
+        tests: [not_null]
+      - name: compliance_status
+        tests:
+          - not_null
+          - accepted_values:
+              values: ["COMPLIANT", "OPEN", "DUE_SOON", "OVERDUE_HOURS", "OVERDUE_DATE"]

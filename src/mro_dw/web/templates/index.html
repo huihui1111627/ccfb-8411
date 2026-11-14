@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="card">
+  <h1>总览</h1>
+  <p class="muted">链路：landing（xlsx/csv 每日增量）→ raw（DuckDB 幂等入库）→ dbt 三层建模（staging / intermediate / marts，全量带测试）→ 控制台只读查询。</p>
+  <div class="grid">
+    {% for r in ov.counts %}
+    <div class="kpi"><div class="v">{{ r.rows }}</div><div class="k">raw.{{ r.table }}</div></div>
+    {% endfor %}
+  </div>
+</div>
+<div class="card">
+  <h2>增量水位（ingest_state）</h2>
+  {% if ov.watermarks %}
+  <div class="scroll"><table>
+    <tr><th>数据源</th><th>已加载业务日期高水位</th><th>最近加载时间</th><th>本次行数</th></tr>
+    {% for w in ov.watermarks %}
+    <tr><td>{{ w.source_name }}</td><td>{{ w.last_record_date }}</td>
+        <td>{{ w.last_loaded_at }}</td><td>{{ w.rows_loaded }}</td></tr>
+    {% endfor %}
+  </table></div>
+  {% else %}<p class="muted">尚无增量记录，请先运行 <code>mro-dw ingest</code>。</p>{% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}数据源 · MRO{% endblock %}
+{% block body %}
+<div class="card">
+  <h1>数据源与增量导入</h1>
+  <p class="muted">事务表按业务日期生成 landing 日文件；加载器以 ingest_state 高水位增量扫描，主键 <code>INSERT OR REPLACE</code> 保证重复执行幂等。</p>
+  <div class="scroll"><table>
+    <tr><th>raw 表</th><th>行数</th></tr>
+    {% for r in ov.counts %}<tr><td>raw.{{ r.table }}</td><td>{{ r.rows }}</td></tr>{% endfor %}
+  </table></div>
+</div>
+<div class="card">
+  <h2>高水位</h2>
+  <div class="scroll"><table>
+    <tr><th>数据源</th><th>last_record_date</th><th>last_loaded_at</th><th>rows_loaded</th></tr>
+    {% for w in ov.watermarks %}
+    <tr><td>{{ w.source_name }}</td><td>{{ w.last_record_date }}</td>
+        <td>{{ w.last_loaded_at }}</td><td>{{ w.rows_loaded }}</td></tr>
+    {% else %}<tr><td colspan="4" class="muted">无</td></tr>
+    {% endfor %}
+  </table></div>
+</div>
+{% endblock %}

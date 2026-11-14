@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="card">
+  <h1>出错了</h1>
+  <p class="bad">{{ msg }}</p>
+  <p class="muted">通常是数据仓库尚未构建，请先运行 <code>mro-dw run-all</code>。</p>
+</div>
+{% endblock %}
